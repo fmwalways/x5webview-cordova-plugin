@@ -118,6 +118,9 @@ public class X5WebViewEngine implements CordovaWebViewEngine {
                 X5WebViewEngine.this.cordova.getActivity().runOnUiThread(r);
             }
         }));
+		if(Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            nativeToJsMessageQueue.addBridgeMode(new NativeToJsMessageQueue.EvalBridgeMode(this, cordova));
+        }
         bridge = new CordovaBridge(pluginManager, nativeToJsMessageQueue);
         exposeJsInterface(webView, bridge);
     }
@@ -346,19 +349,19 @@ public class X5WebViewEngine implements CordovaWebViewEngine {
 
     @Override
     public void evaluateJavascript(String js, ValueCallback<String> callback) {
-
-        if(callback == null)
-            webView.evaluateJavascript(js,null);
-
-         final ValueCallback<String> proxyCallback = callback;
-         com.tencent.smtt.sdk.ValueCallback mCallback = new com.tencent.smtt.sdk.ValueCallback() {
-            @Override
-            public void onReceiveValue(Object o) {
-                if(o instanceof String)
-                    proxyCallback.onReceiveValue((String) o);
-            }
-        };
-        webView.evaluateJavascript(js,mCallback);
+        if(callback == null) {
+			webView.evaluateJavascript(js,null);
+        } else {
+			final ValueCallback<String> proxyCallback = callback;
+			com.tencent.smtt.sdk.ValueCallback mCallback = new com.tencent.smtt.sdk.ValueCallback() {
+				@Override
+				public void onReceiveValue(Object o) {
+					if(o instanceof String)
+						proxyCallback.onReceiveValue((String) o);
+				}
+			};
+			webView.evaluateJavascript(js,mCallback);
+		}
     }
 }
 
